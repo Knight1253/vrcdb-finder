@@ -1,11 +1,30 @@
 {
   "activeDays": 90,
-  "maxReposPerQuery": 50,
+  "graveyardDays": 365,
+  "fullScanDay": 0,
+  "digestDay": 0,
+  "reinspectDays": 14,
+  "maxCandidates": 300,
+  "maxCodeRepos": 40,
+  "maxInspectionsPerRun": 120,
+  "maxLinkChecks": 300,
+  "concurrency": 5,
+  "minRateLimitRemaining": 60,
+  "perPage": 50,
   "queries": [
     "vrchat avatar database",
     "vrc avatar database",
     "vrchat avatar search",
     "vrchat avatar finder",
-    "topic:vrchat avatar"
-  ]
+    "vrchat avatar index",
+    "topic:vrchat avatar",
+    "topic:vrchat-avatar"
+  ],
+  "codeQueries": [
+    "avtr_ extension:json",
+    "avtr_ extension:csv"
+  ],
+  "notifications": { "issues": true, "discord": true },
+  "safety": { "heuristics": true },
+  "feed": { "title": "VRC Avatar DB Finder", "maxItems": 50 }
 }
