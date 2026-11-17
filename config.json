@@ -1,0 +1,11 @@
+{
+  "activeDays": 90,
+  "maxReposPerQuery": 50,
+  "queries": [
+    "vrchat avatar database",
+    "vrc avatar database",
+    "vrchat avatar search",
+    "vrchat avatar finder",
+    "topic:vrchat avatar"
+  ]
+}
