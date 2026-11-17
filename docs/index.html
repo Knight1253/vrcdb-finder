@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vrcdb finder</title>
+<style>
+  :root { --bg:#fff; --fg:#1a1a1a; --muted:#666; --card:#f5f5f7; --line:#ddd; --ok:#1a7f37; --bad:#b42318; --accent:#5b5bd6; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#111114; --fg:#eee; --muted:#9a9aa5; --card:#1a1a1f; --line:#2c2c34; --ok:#3fb950; --bad:#f85149; --accent:#8b8bff; } }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:24px; background:var(--bg); color:var(--fg); font:15px/1.5 system-ui, sans-serif; max-width:1000px; margin-inline:auto; }
+  h1 { margin:0 0 4px; font-size:1.5rem; }
+  .sub { color:var(--muted); margin-bottom:16px; }
+  .controls { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+  input[type=search] { flex:1; min-width:200px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--fg); }
+  .repo { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:10px; }
+  .repo a.name { color:var(--accent); font-weight:600; text-decoration:none; }
+  .meta { color:var(--muted); font-size:13px; margin-top:4px; }
+  .tag { display:inline-block; padding:1px 8px; border-radius:99px; font-size:12px; border:1px solid var(--line); margin-right:6px; }
+  .on { color:var(--ok); border-color:var(--ok); } .off { color:var(--bad); border-color:var(--bad); }
+  .links { margin-top:6px; font-size:13px; overflow-wrap:anywhere; }
+</style>
+</head>
+<body>
+<h1>VRC Avatar Database Finder</h1>
+<div class="sub" id="sub">Loading...</div>
+<div class="controls">
+  <input type="search" id="q" placeholder="Filter by name or description">
+  <label><input type="checkbox" id="active" checked> Active only</label>
+  <label><input type="checkbox" id="db" checked> Looks like a database</label>
+</div>
+<div id="list"></div>
+<script>
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let data = { repos: [] };
+function render() {
+  const q = document.getElementById('q').value.toLowerCase();
+  const activeOnly = document.getElementById('active').checked;
+  const dbOnly = document.getElementById('db').checked;
+  const rows = data.repos.filter(r =>
+    (!activeOnly || r.active) && (!dbOnly || r.looks_like_db) &&
+    (r.full_name + ' ' + r.description).toLowerCase().includes(q));
+  document.getElementById('list').innerHTML = rows.map(r => `
+    <div class="repo">
+      <a class="name" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.full_name)}</a>
+      <span class="tag ${r.active ? 'on' : 'off'}">${r.active ? 'active' : (r.archived ? 'archived' : 'stale')}</span>
+      ${r.looks_like_db ? '<span class="tag">database</span>' : ''}
+      <div>${esc(r.description)}</div>
+      <div class="meta">â˜… ${r.stars} Â· last push ${r.days_since_push}d ago${r.language ? ' Â· ' + esc(r.language) : ''}${r.avatar_ids_in_readme ? ' Â· ' + r.avatar_ids_in_readme + ' avatar IDs in README' : ''}</div>
+      ${r.external_links.length ? '<div class="links">' + r.external_links.map(l => `<span class="tag ${l.alive ? 'on' : 'off'}">${l.alive ? 'up' : 'down'}</span><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.url)}</a> `).join('') + '</div>' : ''}
+    </div>`).join('') || '<div class="sub">No results match.</div>';
+}
+fetch('results.json').then(r => r.json()).then(d => {
+  data = d;
+  document.getElementById('sub').textContent = `${d.repos.length} repos scanned, ${d.repos.filter(r => r.active).length} active (pushed in last ${d.activeDays} days). Updated ${new Date(d.generatedAt).toLocaleString()}.`;
+  render();
+}).catch(() => { document.getElementById('sub').textContent = 'No results yet. Run the "Find VRC avatar DBs" workflow from the Actions tab.'; });
+['q','active','db'].forEach(id => document.getElementById(id).addEventListener('input', render));
+</script>
+</body>
+</html>
+
